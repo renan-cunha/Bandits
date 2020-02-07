@@ -25,7 +25,7 @@ class Bandit:
             
             step_size = step_size_function(step)
 
-            action = self.action_policy()
+            action = self.action_policy(epsilon)
             reward = testbed.act(action)
             rewards[step] = reward
             self.update_action_estimate(action, reward, step_size)
