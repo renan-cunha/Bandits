@@ -23,3 +23,14 @@ class Testbed:
 
     def random_action(self) -> int:
         return random.randint(0, self.get_num_actions()-1)
+
+    def optimal_action(self) -> int:
+        result = 0
+        max_mean = self.arms[0].mean
+
+        for arm_index in range(1, self.get_num_actions()):
+            arm_mean = self.arms[arm_index].mean
+            if arm_mean > max_mean:
+                result = arm_index
+                max_mean = arm_mean
+        return result

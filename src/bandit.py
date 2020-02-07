@@ -11,14 +11,17 @@ class Bandit:
     def __init__(self, testbed: Testbed):
         self.testbed = testbed
     
-    def run(self, num_steps: int, epsilon: float, 
-            step_size_function: Callable, 
-            random_walk_stddev: float) -> np.ndarray:
-        """Returns an array with rewards per step"""
+    def run(self, num_steps: int, epsilon: float,
+            step_size_function: Callable,
+            random_walk_stddev: float) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns a tuple containing:
+            1) an array with rewards per step
+            2) a boolean array inidicating if the action is optimal per step"""
         
         testbed = deepcopy(self.testbed)
         num_actions = testbed.get_num_actions()
         rewards = np.zeros(num_steps, dtype=float)
+        is_optimal = np.zeros(num_steps, dtype=bool)
 
         self.action_estimates = np.zeros(num_actions, dtype=float)
         for step in range(num_steps):
@@ -28,9 +31,10 @@ class Bandit:
             action = self.action_policy(epsilon)
             reward = testbed.act(action)
             rewards[step] = reward
+            is_optimal[step] = (action == testbed.optimal_action())
             self.update_action_estimate(action, reward, step_size)
             testbed.random_walk(0, random_walk_stddev)
-        return rewards
+        return rewards, is_optimal
 
     def action_policy(self, epsilon: float) -> int:
         coin = random.uniform(0, 1)
