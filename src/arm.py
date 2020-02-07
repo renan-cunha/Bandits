@@ -9,3 +9,4 @@ class Arm:
 
     def pull(self) -> float:
         return random.gauss(self.mean, self.stddev)
+
