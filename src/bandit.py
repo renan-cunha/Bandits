@@ -16,4 +16,8 @@ class Bandit:
     def get_num_actions(self) -> int:
         return len(self.arms)
 
+    def random_walk(self, mean: float, stddev: float) -> None:
+        for arm in self.arms:
+            arm.random_walk()
+
 
