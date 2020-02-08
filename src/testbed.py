@@ -8,7 +8,7 @@ class Testbed:
     def __init__(self, arms: List[Arm]):
         self.arms = arms
     
-    def act(self, action: int):
+    def act(self, action: int) -> float:
         if action < 0 or action >= self.get_num_actions():
             raise ValueError(f"Action {action} should be on the interval "
                              f"[0, {self.get_num_actions()-1}]")
