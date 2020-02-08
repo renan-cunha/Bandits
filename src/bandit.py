@@ -16,7 +16,8 @@ class Bandit:
     
     def run(self, num_steps: int, epsilon: float, sample_average: bool,
             step_size: float = 0.1,
-            random_walk_stddev: float = 0.0) -> Tuple[np.ndarray, np.ndarray]:
+            random_walk_stddev: float = 0.0,
+            initial_estimate: float = 0.0) -> Tuple[np.ndarray, np.ndarray]:
         """Returns a tuple containing:
             1) an array with rewards per step
             2) a boolean array inidicating if the action is optimal per step"""
@@ -29,7 +30,9 @@ class Bandit:
         rewards = np.zeros(num_steps, dtype=float)
         is_optimal = np.zeros(num_steps, dtype=bool)
 
-        self.action_estimates = np.zeros(num_actions, dtype=float)
+        self.action_estimates = np.full(num_actions, dtype=float, 
+                                        fill_value=initial_estimate)
+
         for step in range(num_steps):
             
             action = self.action_policy(epsilon)
