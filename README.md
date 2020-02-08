@@ -1,15 +1,14 @@
-# Foobar
+# Multi-Armed Bandits
 
-Foobar is a Python library for dealing with word pluralization.
+Implementation of common Multi-Armed bandits algorithms and 
+solution to bandit programming exercises of [Richard S. Sutton and Andrew G. Barto. 2018.
+Reinforcement Learning: An Introduction](http://incompleteideas.net/book/the-book.html)
 
+## Algorithms
 
-## Usage
+- [x] Greedy with Optimistic Initialization
+- [x] Epsilon-Greedy
+- [x] Upper-Confidence Bound (UBC)
+- [x] Gradient Bandit
 
-```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
-```
 
