@@ -15,6 +15,8 @@ class Bandit:
         self.sample_average = False
         self.ucb = False
         self.c = 0.0
+        self.gradient = False
+        self.average_reward = 0.0
     
     def run(self, num_steps: int, epsilon: float = 0, 
             sample_average: bool = False,
@@ -22,7 +24,8 @@ class Bandit:
             random_walk_stddev: float = 0.0,
             initial_estimate: float = 0.0,
             ucb: bool = False,
-            c: float = 0.0) -> Tuple[np.ndarray, np.ndarray]:
+            c: float = 0.0,
+            gradient: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         """Returns a tuple containing:
             1) an array with rewards per step
             2) a boolean array inidicating if the action is optimal per step"""
@@ -31,6 +34,8 @@ class Bandit:
         self.step_size = step_size
         self.ucb = ucb
         self.c = c
+        self.gradient = gradient
+        self.average_reward = 0.0
 
         testbed = deepcopy(self.testbed)
         num_actions = testbed.get_num_actions()
@@ -44,6 +49,9 @@ class Bandit:
             
             action = self.action_policy(epsilon, step)
             reward = testbed.act(action)
+
+            self.average_reward += (reward - self.average_reward) / (step + 1.0)
+
             rewards[step] = reward
             is_optimal[step] = (action == testbed.optimal_action())
             self.update_action_estimate(action, reward)
@@ -59,6 +67,10 @@ class Bandit:
             ucb_exploration = np.sqrt(np.log(step)/action_counts)
             bound_estimation = self.action_estimates + self.c * ucb_exploration
             action = np.argmax(bound_estimation)
+        elif self.gradient:
+            action_probabilities = self.softmax()
+            actions = list(range(self.testbed.get_num_actions()))
+            action = np.random.choice(actions, p=action_probabilities)
         else:
             coin = random.uniform(0, 1)
             if coin > epsilon:
@@ -70,11 +82,23 @@ class Bandit:
         self.action_counts[action] += 1
         return action
 
+    def softmax(self) -> np.array:
+        exp_action_estimates = np.exp(self.action_estimates)
+        return exp_action_estimates / np.sum(exp_action_estimates)
+        
     def update_action_estimate(self, action: int, reward: float) -> None:
         action_estimate = self.action_estimates[action]
         if self.sample_average:
             action_count = self.action_counts[action]
             action_estimate += (reward-action_estimate) / (action_count + 1)
+        elif self.gradient:
+            action_probabilities = self.softmax()
+            action_probability = action_probabilities[action]
+            reward_diff = reward - self.average_reward
+            action_estimate += self.step_size * reward_diff * (1-action_probability)
+            
+            self.action_estimates -= self.step_size * reward_diff*action_probabilities
+
         else:
             action_estimate += self.step_size*(reward-action_estimate)
         self.action_estimates[action] = action_estimate
