@@ -3,6 +3,7 @@ import random
 from sklearn.linear_model import LogisticRegression
 from tqdm import tqdm
 from src.contextual_bandits.contextual_environment import ContextualEnvironment
+from sklearn.exceptions import NotFittedError
 
 
 class EpsilonGreedy:
@@ -10,8 +11,7 @@ class EpsilonGreedy:
     def __init__(self, epsilon: float):
         self.epsilon = epsilon
         self.num_arms = 2
-        self.classifiers = [LogisticRegression(solver="lbfgs",
-                                               n_jobs=1) for x in range(self.num_arms)]
+        self.classifiers = [LogisticRegression(solver="lbfgs", n_jobs=-1) for x in range(self.num_arms)]
         self.context_data = np.empty(0)
         self.rewards_data = np.empty(0)
 
@@ -23,7 +23,7 @@ class EpsilonGreedy:
         context_dim = c_env.get_context_dim()
         self.classifiers = [LogisticRegression() for x in range(self.num_arms)]
         self.context_data = np.zeros((num_steps, context_dim))
-        self.rewards_data = np.full((num_steps, self.num_arms), -1,
+        self.rewards_data = np.full((num_steps, self.num_arms), -1, 
                                     dtype=float)
 
         rewards_history = np.zeros(num_steps)
@@ -50,22 +50,26 @@ class EpsilonGreedy:
         rewards_so_far = self.rewards_data[:step]
         for classifier_index, _ in enumerate(self.classifiers):
             action_rewards = rewards_so_far[:, classifier_index]
-            if len(np.unique(action_rewards)) > 1:
-                self.classifiers[classifier_index].fit(contexts_so_far,
+            index = np.argwhere(action_rewards != -1).flatten()
+            action_rewards = action_rewards[index]
+            if len(np.unique(action_rewards)) == 2:
+                action_contexts = contexts_so_far[index]
+                self.classifiers[classifier_index].fit(action_contexts,
                                                        action_rewards)
 
     def action_policy(self, context: np.ndarray) -> int:
-        coin = random.gauss(0, 1)
+        coin = random.uniform(0, 1)
         if coin > self.epsilon:
             rewards = np.zeros(len(self.classifiers))
             for classifier_index, classifier in enumerate(self.classifiers):
                 action_rewards = self.rewards_data[:, classifier_index]
-                cond1 = len(np.where(action_rewards == 1)) > 1
-                cond2 = len(np.where(action_rewards == 0)) > 1
-                if not cond1 or not cond2:
-                    action_score = np.random.beta(3, 7)
+                if len(np.unique(action_rewards.flatten())) == 3:
+                    try:
+                        action_score = classifier.predict(context.reshape(1, -1))
+                    except NotFittedError as e:
+                        action_score = np.random.beta(3.0/self.num_arms, 4)
                 else:
-                    action_score = classifier.predict(context)
+                    action_score = np.random.beta(3.0/self.num_arms, 4)
                 rewards[classifier_index] = action_score
 
             max_rewards = max(rewards)

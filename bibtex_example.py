@@ -11,7 +11,7 @@ y = np.load("src/contextual_bandits/Bibtex/bibtex_y.npy")
 c_env = ContextualEnvironment(X, y)
 epsilon_greedy = EpsilonGreedy(0.2)
 num_runs = 1
-num_steps = 7000
+num_steps = 10000
 training_freq = 50
 total_rewards = np.zeros((num_runs, num_steps))
 
@@ -32,5 +32,7 @@ plt.title("Raw Rewards")
 
 plt.subplot(212)
 plt.plot(mean_rewards)
-plt.title("Mean Rewards")
+plt.xlabel("Steps")
+plt.title("Cumulative Mean Rewards")
+plt.grid()
 plt.show()
