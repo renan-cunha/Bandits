@@ -1,3 +1,5 @@
+"""I took this script from David Cortes tutorial
+https://nbviewer.jupyter.org/github/david-cortes/contextualbandits/blob/master/example/online_contextual_bandits.ipynb"""
 import pandas as pd, numpy as np, re
 from sklearn.preprocessing import MultiLabelBinarizer
 
